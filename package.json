@@ -1,0 +1,23 @@
+{
+  "name": "siasus_service",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && cp LICENSE ./dist/LICENSE && cp README.md ./dist/README.md && cp package.json ./dist/package.json && cp -r ./addon ./dist/addon",
+    "publish": "npm publish ./dist --access=public",
+    "test": "npm run build && node --test --trace-warnings --experimental-fetch",
+    "main": "npm run build && node --max-old-space-size=4096 ./dist/main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^22.15.23",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "basic-ftp": "^5.0.5",
+    "dbffile": "^1.12.0"
+  }
+}
