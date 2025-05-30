@@ -2,6 +2,7 @@
   "name": "siasus_service",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc && cp LICENSE ./dist/LICENSE && cp README.md ./dist/README.md && cp package.json ./dist/package.json && cp -r ./addon ./dist/addon",
     "publish": "npm publish ./dist --access=public",
