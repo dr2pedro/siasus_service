@@ -1,4 +1,4 @@
-// @filename: gateway.ts
+// @filename: JobSummary.ts
 
 /*
  *     Copyright 2025 Pedro Paulo Teixeira dos Santos
@@ -16,12 +16,11 @@
     limitations under the License.
 */
 
-
-import {SIASubset, Subset} from "./utils.js";
-
-export interface DATASUSGateway<S extends Subset> {
-    list(subset: S, display: 'short' | 'full'): Promise<string[]> | Promise<{ [key: string]: any }[]>
-    get(file: string, dest?: string): Promise<any>
+interface JobSummary {
+    pid: number;
+    file: string;
+    total: number;
+    founds: number;
+    errors: number;
+    filters?: string[];
 }
-
-export interface SIAGateway extends DATASUSGateway<SIASubset>{}

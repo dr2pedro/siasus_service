@@ -1,3 +1,4 @@
+migrations/*.db
 *.dbc
 *.dbc.json
 summary.json

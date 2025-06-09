@@ -16,12 +16,11 @@
     limitations under the License.
 */
 
-import { statSync, unlink } from  "node:fs"
-import { tmpdir } from "node:os";
-import { parse } from "node:path";
-import { createRequire } from 'module';
-import { DBFFile, FieldDescriptor } from 'dbffile';
-import {CanNotExcludeDbcFile} from "../exceptions.js";
+import {statSync, unlink} from "node:fs"
+import {tmpdir} from "node:os";
+import {parse} from "node:path";
+import {createRequire} from 'module';
+import {DBFFile, FieldDescriptor} from 'dbffile';
 
 const require = createRequire(import.meta.url);
 const addon = require('../../addon/build/Release/addon');
@@ -57,8 +56,7 @@ export class Dbc {
     }
 
     async readBatch(count?: number): Promise<Record<string, unknown>[]> {
-        const records = await this.dbf.readRecords(count || this.size);
-        return records
+        return await this.dbf.readRecords(count || this.size)
     }
 
     remove(): void {
@@ -71,7 +69,19 @@ export class Dbc {
 
     async forEachRecords(callback: (record: any) => Promise<any>) {
         for await (let record of this.dbf) {
-            callback(record)
+            await callback(record)
         }
+    }
+}
+
+export class CanNotExcludeDbcFile extends Error {
+    constructor(file: string) {
+        super(`A error occurred when deleting file: ${ file }`)
+        this.name = 'CanNotExcludeDbcFile';
+        this.cause = 'The file was already excluded.'
+    }
+
+    static exception(file: string) {
+        throw new CanNotExcludeDbcFile(file)
     }
 }

@@ -1,12 +1,11 @@
 import {readFileSync} from "node:fs";
-import {ICD10} from "./entity/ICD10.js";
-import {
-    BPASIAManyCitiesCriteria,
-    BPASIAManyOriginDocumentCriteria,
-    BPASIAManyPrimaryConditionsCriteria
-} from "./criteria.js";
-import {BasicFTPClient, SIAFTPGateway} from "./ftp.js";
-import {SIA} from "./command.js";
+import {ICD10} from "./interface/utils/ICD10.js";
+import {SIASUSService} from "./app/SIASUSService.js";
+import {BPASIAManyPrimaryConditionsCriteria} from "./interface/criteria/array/BPASIAManyPrimaryConditionsCriteria.js";
+import {BPASIAManyCitiesCriteria} from "./interface/criteria/array/BPASIAManyCitiesCriteria.js";
+import {BPASIAManyOriginDocumentCriteria} from "./interface/criteria/array/BPASIAManyOriginDocumentCriteria.js";
+import {BasicFTPClient} from "./infra/ftp/BasicFTPClient.js";
+import {SIAFTPGateway} from "./interface/gateway/SIAFTPGateway.js";
 
 const MAX_CONCURRENT_PROCESSES = 5
 const FTP_HOST = 'ftp.datasus.gov.br'
@@ -28,11 +27,11 @@ const conditionFilter = BPASIAManyPrimaryConditionsCriteria.set(cid.list);
 const cityFilter = BPASIAManyCitiesCriteria.set(cities);
 const docOrigin = BPASIAManyOriginDocumentCriteria.set(['C', 'I']);
 
-const sia = SIA.init(
+const sia = SIASUSService.init(
     gateway,
     [conditionFilter, cityFilter, docOrigin],
     undefined,
-    'stdout',
+    'file',
     MAX_CONCURRENT_PROCESSES
 );
 await sia.subset({
@@ -49,4 +48,10 @@ await sia.subset({
         }
     }
 });
-sia.exec('./dist/job.js')
+
+await sia.exec('./dist/infra/job/job.js').finally(
+    () => {
+        console.log('Done!')
+        process.exit(0)
+    }
+)
