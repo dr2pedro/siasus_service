@@ -15,11 +15,11 @@ fi
 
 VERSION=$(node-gyp -v)
 
-cd addon
-node-gyp clean
-node-gyp remove "$VERSION"
-node-gyp configure
-node-gyp build
-cd ..
+## cd addon
+## node-gyp clean
+## node-gyp remove "$VERSION"
+## node-gyp configure
+## node-gyp build
+## cd ..
 
 npm run "$1"

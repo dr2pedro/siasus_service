@@ -19,11 +19,8 @@
 import {statSync, unlink} from "node:fs"
 import {tmpdir} from "node:os";
 import {parse} from "node:path";
-import {createRequire} from 'module';
 import {DBFFile, FieldDescriptor} from 'dbffile';
-
-const require = createRequire(import.meta.url);
-const addon = require('../../addon/build/Release/addon');
+import { dbc2dbf } from "@codeplaydata/dbc2dbf"
 
 export class Dbc {
     size!: number;
@@ -48,7 +45,7 @@ export class Dbc {
         try {
             statSync(io.output);
         } catch(error: any) {
-            addon(io);
+            dbc2dbf(io);
         }
 
         let dbf = await DBFFile.open(io.output);
