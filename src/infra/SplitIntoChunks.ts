@@ -27,7 +27,7 @@ export class SplitIntoChunks implements Command {
         return new SplitIntoChunks(chunkSize)
     }
 
-    exec(arr: any[]) {
+    exec(arr: string[]) {
         const chunks = [];
         for (let i = 0; i < arr.length; i += this.chunkSize) {
             chunks.push(arr.slice(i, i + this.chunkSize));

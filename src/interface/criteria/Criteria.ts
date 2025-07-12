@@ -20,7 +20,7 @@ export interface Criteria<T> {
     name: string;
     str?: string;
     array?: string[];
-    match(items: T): boolean;
+    match(record: T): boolean;
 }
 
 

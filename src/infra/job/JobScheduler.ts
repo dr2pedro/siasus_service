@@ -36,11 +36,11 @@ class FailToScheduleJob extends Error {
 
 export class JobScheduler<R extends Records> implements Command {
     private filesProcessed: number = 0;
-    private constructor(readonly MAX_CONCURRENT_PROCESSES:number = 2, readonly criteria?: Criteria<R>[], readonly DATA_PATH?: string) {
+    private constructor(readonly MAX_CONCURRENT_PROCESSES:number = 2, readonly criteria?: Map<string, string | string[]>, readonly DATA_PATH?: string) {
     }
 
-    static init(MAX_CONCURRENT_PROCESSES?:number, criterias?: Criteria<Records>[], DATA_PATH?: string) {
-        return new JobScheduler(MAX_CONCURRENT_PROCESSES, criterias, DATA_PATH)
+    static init(MAX_CONCURRENT_PROCESSES?:number, criteria?: Map<string, string | string[]>, DATA_PATH?: string) {
+        return new JobScheduler(MAX_CONCURRENT_PROCESSES, criteria, DATA_PATH)
     }
 
     incrementFilesProcessed(qnt: number = 1) {
@@ -49,6 +49,8 @@ export class JobScheduler<R extends Records> implements Command {
     }
 
     async exec(chunk: string[] | JobMessage<R>[], output: 'stdout' | 'file' = 'file', jobScript: string, callback?: Function): Promise<void> {
+        const criteriaObj = this.criteria ? Object.fromEntries(this.criteria) : undefined;
+
         try {
             await JobRunner
                 .init(jobScript)
@@ -56,7 +58,7 @@ export class JobScheduler<R extends Records> implements Command {
                     {
                         file: chunk[this.filesProcessed] as string,
                         output,
-                        criteria: this.criteria,
+                        criteria: criteriaObj,
                         dataPath: this.DATA_PATH
                     },
                     callback

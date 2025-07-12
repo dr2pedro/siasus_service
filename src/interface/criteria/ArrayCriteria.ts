@@ -19,11 +19,13 @@
 import {Records} from "../../core/Records.js";
 import {Criteria} from "./Criteria.js";
 
-export abstract class ArrayCriteria<S extends Records, P extends string> implements Criteria<S> {
-    constructor(readonly name: string, readonly array: string[], readonly objProp: P) {
+export class ArrayCriteria<RecordType extends Records> implements Criteria<RecordType> {
+    readonly name: string;
+    constructor(readonly array: string[], readonly objProp: string) {
+        this.name = objProp + '_FILTER';
     }
 
-    match(item: S): boolean {
+    match(item: RecordType): boolean {
         return this.array.includes(item[this.objProp])
     }
 }

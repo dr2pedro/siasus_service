@@ -42,11 +42,11 @@ export class JobOrchestrator<S extends Subset, G extends DATASUSGateway<S>> impl
         readonly DATA_PATH: string = './data/',
         readonly MAX_CONCURRENT_PROCESSES: number,
         readonly output: 'stdout' | 'file' = 'stdout',
-        readonly filters: Criteria<Records>[],
+        readonly filters?: Map<string, string | string[]>,
         readonly callback?: Function,
     ) {}
 
-    static init(gateway: DATASUSGateway<Subset>, filters: Criteria<Records>[] = [], callback?: Function, output: 'stdout' | 'file' = 'stdout', MAX_CONCURRENT_PROCESSES: number = 5, DATA_PATH: string = './data/') {
+    static init(gateway: DATASUSGateway<Subset>, filters?: Map<string, string | string[]>, callback?: Function, output: 'stdout' | 'file' = 'stdout', MAX_CONCURRENT_PROCESSES: number = 5, DATA_PATH: string = './data/') {
         return new JobOrchestrator(gateway, DATA_PATH, MAX_CONCURRENT_PROCESSES, output, filters, callback)
     }
 
@@ -59,7 +59,7 @@ export class JobOrchestrator<S extends Subset, G extends DATASUSGateway<S>> impl
     async exec(jobScript: string) {
         for await (let file of this._files) {
             if(this.output === 'file') console.log(`Downloading ${file}...`)
-            await this.gateway.get(file, './data/' + file)
+            await this.gateway.get(file, this.DATA_PATH + file)
             if(this.output === 'file') console.log(`Download of ${file} completed.`)
         }
         let chunksProceeded = 0;

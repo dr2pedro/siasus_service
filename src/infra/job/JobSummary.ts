@@ -22,5 +22,5 @@ interface JobSummary {
     total: number;
     founds: number;
     errors: number;
-    filters?: string[];
+    filters?: Record<string, string | string[]> | [string, string | string[]][];
 }

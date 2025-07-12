@@ -44,7 +44,10 @@ export class JobRunner<R extends Records> implements Command {
                     callback(msg)
                 });
             }
-            child.send(jobMsg!)
+
+            // A conversão não é mais necessária aqui já que o JobScheduler já envia como objeto
+            child.send(jobMsg);
         })
     }
+
 }

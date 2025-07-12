@@ -60,7 +60,7 @@ process.on('unhandledRejection', (reason, _) => {
 process.on('message', async (msg: JobMessage<BPA|APAC|RAAS>) => {
     try {
         const processor = new JobProcessor(msg);
-        await processor.process();
+        await processor.process(); // aqui está o erro.
     } catch (error) {
         ProcessFatal.exception(process.pid.toString(), error as Error);
         process.exit(1);

@@ -22,32 +22,9 @@ import {JobMessage} from "./JobMessage.js";
 import {BPA} from "../../core/BPA.js";
 import {APAC} from "../../core/APAC.js";
 import {RAAS} from "../../core/RAAS.js";
-import {deserializeSIACriteria} from "../../interface/criteria/deserializeSIACriteria.js";
 import {Criteria} from "../../interface/criteria/Criteria.js";
-
-class DeserializeCriteriaFailed extends Error {
-    constructor(criteria: Criteria<any>) {
-        super(`[ERROR]: The criteria ${ criteria.constructor.name } could not be deserialized.`)
-        this.name = 'DeserializeCriteriaFailed';
-        this.cause = 'This occurs when the criteria has not valid params.'
-    }
-
-    static exception(criteria: Criteria<any>) {
-        throw new DeserializeCriteriaFailed(criteria)
-    }
-}
-
-class CanNotLoadCriteriaFromJobMsg extends Error {
-    constructor() {
-        super(`[ERROR]: Could not load criteria from job message.`)
-        this.name = 'CanNotLoadCriteriaFromJobMsg';
-        this.cause = 'This occurs when the criteria data is not valid.'
-    }
-
-    static exception() {
-        throw new CanNotLoadCriteriaFromJobMsg()
-    }
-}
+import {ArrayCriteria} from "../../interface/criteria/ArrayCriteria.js";
+import {StringCriteria} from "../../interface/criteria/StringCriteria.js";
 
 class ProcessRecordFailed extends Error {
     constructor() {
@@ -73,25 +50,41 @@ class CouldNotCleanUp extends Error {
     }
 }
 
+// Utils
+function toHexString(str: string): string {
+    // Remover espaços e garantir que a string está preenchida
+    const cleanStr = str.trim();
+    if (!cleanStr) return '';
+
+    // Converter cada caractere para seu valor hexadecimal
+    const hex = Array.from(cleanStr)
+        .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join('');
+
+    return hex.toUpperCase();
+}
+
+
 export class JobProcessor {
     private summary: JobSummary;
     private dbc: Dbc | null;
     private msg: JobMessage<BPA>;
 
-    constructor(msg: JobMessage<BPA|APAC|RAAS>) {
+    constructor(msg: JobMessage<BPA | APAC | RAAS>) {
         this.msg = msg;
         this.dbc = null;
+
         this.summary = {
             pid: process.pid,
             file: msg.file,
             total: 0,
             founds: 0,
             errors: 0,
-            filters: msg.criteria?.map((i) => i.name)
+            filters: msg.criteria
         };
     }
 
-    private async handleRecord(record: any): Promise<void> {
+    private async handleRecord(record: BPA | APAC | RAAS): Promise<void> {
         try {
             switch (this.msg.output) {
                 case 'stdout':
@@ -107,7 +100,7 @@ export class JobProcessor {
         }
     }
 
-    private async writeToFile(record: any): Promise<void> {
+    private async writeToFile(record: BPA | APAC | RAAS): Promise<void> {
         return new Promise((resolve, reject) => {
             appendFile(this.msg.dataPath + 'data.json', JSON.stringify(record), (error) => {
                 if (error) {
@@ -124,27 +117,40 @@ export class JobProcessor {
     }
 
     private loadCriteriaFromMsg() {
-        try {
-            return this.msg.criteria?.map(criteria => {
-                const deserialized = deserializeSIACriteria(criteria);
-                if (!deserialized) {
-                    DeserializeCriteriaFailed.exception(criteria)
-                }
-                return deserialized;
-            }) ?? [];
-        } catch (_) {
-            CanNotLoadCriteriaFromJobMsg.exception()
+        const criteria: Criteria<any>[] = [];
+
+        if (!this.msg.criteria) {
+            return criteria;
+        } // pq que não caiu aqui?
+
+        const entries = Array.isArray(this.msg.criteria) ?
+            this.msg.criteria :
+            Object.entries(this.msg.criteria);
+
+        // console.log("Cheguei aqui?")
+
+        for (const [key, value] of entries) {
+            criteria.push(
+                Array.isArray(value) ?
+                    new ArrayCriteria(value, key) :
+                    new StringCriteria(value, key)
+            );
         }
+        return criteria;
     }
+
 
     public async process(): Promise<void> {
         try {
             await this.initialize();
-            const criteria = this.loadCriteriaFromMsg();
+            const criteria = this.loadCriteriaFromMsg(); // o erro está aqui
 
             await this.dbc!.forEachRecords(async (record: BPA) => {
                 try {
                     if (!this.msg.criteria || criteria?.every(criteria => criteria?.match(record))) {
+                        if (record.CNS_PAC) {
+                            record.CNS_PAC = toHexString(record.CNS_PAC);
+                        }
                         await this.handleRecord(record);
                     }
                 } catch (_) {

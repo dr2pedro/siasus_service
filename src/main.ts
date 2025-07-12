@@ -1,9 +1,6 @@
 import {readFileSync} from "node:fs";
 import {ICD10} from "./interface/utils/ICD10.js";
 import {SIASUSService} from "./app/SIASUSService.js";
-import {BPASIAManyPrimaryConditionsCriteria} from "./interface/criteria/array/BPASIAManyPrimaryConditionsCriteria.js";
-import {BPASIAManyCitiesCriteria} from "./interface/criteria/array/BPASIAManyCitiesCriteria.js";
-import {BPASIAManyOriginDocumentCriteria} from "./interface/criteria/array/BPASIAManyOriginDocumentCriteria.js";
 import {BasicFTPClient} from "./infra/ftp/BasicFTPClient.js";
 import {SIAFTPGateway} from "./interface/gateway/SIAFTPGateway.js";
 
@@ -23,19 +20,18 @@ cid
 
 const gateway = await SIAFTPGateway.getInstanceOf(ftpClient!);
 
-const conditionFilter = BPASIAManyPrimaryConditionsCriteria.set(cid.list);
-const cityFilter = BPASIAManyCitiesCriteria.set(cities);
-const docOrigin = BPASIAManyOriginDocumentCriteria.set(['C', 'I']);
+const filters = new Map<string, string | string[]>();
+filters.set('MUNPAC', "222222")
 
 const sia = SIASUSService.init(
     gateway,
-    [conditionFilter, cityFilter, docOrigin],
+    filters,
     undefined,
-    'file',
+    'stdout',
     MAX_CONCURRENT_PROCESSES
 );
 await sia.subset({
-    src: 'PA',
+    src: 'BI',
     states: ['RJ'],
     period: {
         start: {
@@ -54,4 +50,4 @@ await sia.exec('./dist/infra/job/job.js').finally(
         console.log('Done!')
         process.exit(0)
     }
-)
+);

@@ -19,8 +19,10 @@
 import {Records} from "../../core/Records.js";
 import {Criteria} from "./Criteria.js";
 
-export abstract class StringCriteria<RecordType extends Records, PropOfRecord extends string> implements Criteria<RecordType> {
-    constructor(readonly name: string, readonly str: string, readonly objProp: PropOfRecord) {
+export class StringCriteria<RecordType extends Records> implements Criteria<RecordType> {
+    readonly name: string;
+    constructor(readonly str: string, readonly objProp: string) {
+        this.name = objProp + '_FILTER';
     }
 
     match(item: RecordType): boolean {

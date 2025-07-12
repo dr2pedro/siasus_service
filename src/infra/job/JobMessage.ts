@@ -21,7 +21,7 @@ import {Criteria} from "../../interface/criteria/Criteria.js";
 
 export type JobMessage<T> = {
     file: string,
-    criteria?: Criteria<T>[],
+    criteria?: Record<string, string | string[]> | [string, string | string[]][],
     output: 'stdout' | 'file',
     dataPath: string | undefined
 }
