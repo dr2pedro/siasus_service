@@ -18,10 +18,9 @@
 
 import {ChildProcess, fork, Serializable} from "node:child_process";
 import {Command} from "../Command.js";
-import {Records} from "../../core/Records.js";
 import {JobMessage} from "./JobMessage.js";
 
-export class JobRunner<R extends Records> implements Command {
+export class JobRunner implements Command {
     private constructor(private jobScript: string) {
     }
 
@@ -29,7 +28,7 @@ export class JobRunner<R extends Records> implements Command {
         return new JobRunner(jobScript)
     }
 
-    async exec(jobMsg: JobMessage<Records>, callback?: Function) {
+    async exec(jobMsg: JobMessage, callback?: Function) {
         return new Promise((resolve, reject) => {
             const child: ChildProcess = fork(this.jobScript);
             child.on('exit', (code, signal) => {
@@ -41,11 +40,13 @@ export class JobRunner<R extends Records> implements Command {
 
             if(callback) {
                 child.on('message', (msg: Serializable) => {
+                    // aqui tem que estar a denormalização.
+                    // e não pode estar acoplada. Talvez uma classe para denormalizar determinados fieds.
+                    // a estrategia do Mapper no Dicionário foi uma boa estratégia, com a diferença de que
+                    // talvez aqui, gere uma chamda HTTP para algum gateway.
                     callback(msg)
                 });
             }
-
-            // A conversão não é mais necessária aqui já que o JobScheduler já envia como objeto
             child.send(jobMsg);
         })
     }

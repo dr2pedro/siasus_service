@@ -16,10 +16,10 @@
     limitations under the License.
 */
 
+import {DataSource, SIADatasource} from "../../core/SIADatasource";
 
-import {Criteria} from "../../interface/criteria/Criteria.js";
-
-export type JobMessage<T> = {
+export type JobMessage = {
+    src: DataSource | undefined,
     file: string,
     criteria?: Record<string, string | string[]> | [string, string | string[]][],
     output: 'stdout' | 'file',

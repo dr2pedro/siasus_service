@@ -19,9 +19,6 @@
 
 import {JobProcessor} from "./JobProcessor.js";
 import {JobMessage} from "./JobMessage.js";
-import {BPA} from "../../core/BPA.js";
-import {APAC} from "../../core/APAC.js";
-import {RAAS} from "../../core/RAAS.js";
 
 class UncaughtException extends Error {
     constructor(pid: string, error: Error) {
@@ -57,10 +54,10 @@ process.on('unhandledRejection', (reason, _) => {
     process.exit(1);
 });
 
-process.on('message', async (msg: JobMessage<BPA|APAC|RAAS>) => {
+process.on('message', async (msg: JobMessage) => {
     try {
         const processor = new JobProcessor(msg);
-        await processor.process(); // aqui está o erro.
+        await processor.process();
     } catch (error) {
         ProcessFatal.exception(process.pid.toString(), error as Error);
         process.exit(1);

@@ -25,6 +25,9 @@ import {RAAS} from "../../core/RAAS.js";
 import {Criteria} from "../../interface/criteria/Criteria.js";
 import {ArrayCriteria} from "../../interface/criteria/ArrayCriteria.js";
 import {StringCriteria} from "../../interface/criteria/StringCriteria.js";
+import {SIAParser} from "../../interface/utils/SIAParser.js";
+import {SIABasicParser} from "../../interface/utils/SIABasicParser.js";
+import {BIDictionary} from "../../interface/utils/BIDictionary.js";
 
 class ProcessRecordFailed extends Error {
     constructor() {
@@ -50,27 +53,14 @@ class CouldNotCleanUp extends Error {
     }
 }
 
-// Utils
-function toHexString(str: string): string {
-    // Remover espaços e garantir que a string está preenchida
-    const cleanStr = str.trim();
-    if (!cleanStr) return '';
-
-    // Converter cada caractere para seu valor hexadecimal
-    const hex = Array.from(cleanStr)
-        .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
-        .join('');
-
-    return hex.toUpperCase();
-}
-
 
 export class JobProcessor {
     private summary: JobSummary;
     private dbc: Dbc | null;
-    private msg: JobMessage<BPA>;
+    private msg: JobMessage;
+    readonly parser: SIAParser | undefined;
 
-    constructor(msg: JobMessage<BPA | APAC | RAAS>) {
+    constructor(msg: JobMessage) {
         this.msg = msg;
         this.dbc = null;
 
@@ -82,6 +72,11 @@ export class JobProcessor {
             errors: 0,
             filters: msg.criteria
         };
+
+        switch (this.msg.src) {
+            case "BI":
+                this.parser = SIABasicParser.instanceOf(BIDictionary)
+        }
     }
 
     private async handleRecord(record: BPA | APAC | RAAS): Promise<void> {
@@ -121,13 +116,11 @@ export class JobProcessor {
 
         if (!this.msg.criteria) {
             return criteria;
-        } // pq que não caiu aqui?
+        }
 
         const entries = Array.isArray(this.msg.criteria) ?
             this.msg.criteria :
             Object.entries(this.msg.criteria);
-
-        // console.log("Cheguei aqui?")
 
         for (const [key, value] of entries) {
             criteria.push(
@@ -139,7 +132,6 @@ export class JobProcessor {
         return criteria;
     }
 
-
     public async process(): Promise<void> {
         try {
             await this.initialize();
@@ -148,9 +140,10 @@ export class JobProcessor {
             await this.dbc!.forEachRecords(async (record: BPA) => {
                 try {
                     if (!this.msg.criteria || criteria?.every(criteria => criteria?.match(record))) {
-                        if (record.CNS_PAC) {
-                            record.CNS_PAC = toHexString(record.CNS_PAC);
-                        }
+                        if(this.parser)
+                            record = this.parser.parse(
+                                record
+                            )
                         await this.handleRecord(record);
                     }
                 } catch (_) {

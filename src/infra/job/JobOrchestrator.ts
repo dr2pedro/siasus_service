@@ -22,13 +22,18 @@ import {JobScheduler} from "./JobScheduler.js";
 import {Command} from "../Command.js";
 import {Subset} from "../../core/Subset.js";
 import {DATASUSGateway} from "../../interface/gateway/DATASUSGateway.js";
-import {Criteria} from "../../interface/criteria/Criteria.js";
-import {Records} from "../../core/Records.js";
+import {DataSource} from "../../core/SIADatasource";
 
-export class JobOrchestrator<S extends Subset, G extends DATASUSGateway<S>> implements Command {
+export class JobOrchestrator<
+    S extends Subset,
+    D extends DataSource,
+    G extends DATASUSGateway<S>
+> implements Command {
     private _files: string[] = [];
     private _chunks: string[][] = [[]];
-    private _callback?: Function = undefined;
+    // Talvez tenha que vir por generics
+    private dataSource: D | undefined
+
     get files() {
         return this._files
     }
@@ -51,6 +56,7 @@ export class JobOrchestrator<S extends Subset, G extends DATASUSGateway<S>> impl
     }
 
     async subset(subset: S) {
+        this.dataSource = subset.src;
         this._files = await this.gateway.list(subset, 'short') as string[];
         this._files = Array.from(new Set(this._files));
         this._chunks = SplitIntoChunks.define(this.MAX_CONCURRENT_PROCESSES).exec(this._files) as string[][];
@@ -65,7 +71,7 @@ export class JobOrchestrator<S extends Subset, G extends DATASUSGateway<S>> impl
         let chunksProceeded = 0;
         if(this.output === 'file') console.log(`\nSending Jobs.\n`);
         while (chunksProceeded < this._chunks.length) {
-            await JobScheduler.init(this.MAX_CONCURRENT_PROCESSES, this.filters, this.DATA_PATH).exec(this._chunks[chunksProceeded], this.output, jobScript, this.callback).finally(() => {
+            await JobScheduler.init(this.MAX_CONCURRENT_PROCESSES, this.filters, this.DATA_PATH).exec(this._chunks[chunksProceeded], this.output, jobScript, this.dataSource,  this.callback).finally(() => {
                 chunksProceeded = chunksProceeded + 1
             })
         }

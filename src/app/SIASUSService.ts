@@ -19,5 +19,6 @@
 import {JobOrchestrator} from "../infra/job/JobOrchestrator.js";
 import {SIASubset} from "../core/SIASubset.js";
 import {SIAGateway} from "../interface/gateway/SIAGateway.js";
+import {SIADatasource} from "../core/SIADatasource";
 
-export class SIASUSService extends JobOrchestrator<SIASubset, SIAGateway>{}
+export class SIASUSService extends JobOrchestrator<SIASubset, SIADatasource, SIAGateway>{}

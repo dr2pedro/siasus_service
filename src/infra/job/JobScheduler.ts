@@ -18,9 +18,8 @@
 
 import {JobRunner} from "./JobRunner.js";
 import {Command} from "../Command.js";
-import {Records} from "../../core/Records.js";
-import {Criteria} from "../../interface/criteria/Criteria.js";
 import {JobMessage} from "./JobMessage.js";
+import {DataSource, SIADatasource} from "../../core/SIADatasource";
 
 class FailToScheduleJob extends Error {
     constructor() {
@@ -34,7 +33,7 @@ class FailToScheduleJob extends Error {
     }
 }
 
-export class JobScheduler<R extends Records> implements Command {
+export class JobScheduler<D extends DataSource> implements Command {
     private filesProcessed: number = 0;
     private constructor(readonly MAX_CONCURRENT_PROCESSES:number = 2, readonly criteria?: Map<string, string | string[]>, readonly DATA_PATH?: string) {
     }
@@ -48,7 +47,8 @@ export class JobScheduler<R extends Records> implements Command {
         return this.filesProcessed
     }
 
-    async exec(chunk: string[] | JobMessage<R>[], output: 'stdout' | 'file' = 'file', jobScript: string, callback?: Function): Promise<void> {
+    // O SIADatasource é a única coisa que identifica. Talvez tenha que vir por Generics.
+    async exec(chunk: string[] | JobMessage[], output: 'stdout' | 'file' = 'file', jobScript: string, dataSource?: D, callback?: Function): Promise<void> {
         const criteriaObj = this.criteria ? Object.fromEntries(this.criteria) : undefined;
 
         try {
@@ -56,6 +56,7 @@ export class JobScheduler<R extends Records> implements Command {
                 .init(jobScript)
                 .exec(
                     {
+                        src: dataSource,
                         file: chunk[this.filesProcessed] as string,
                         output,
                         criteria: criteriaObj,
@@ -67,7 +68,7 @@ export class JobScheduler<R extends Records> implements Command {
             this.incrementFilesProcessed();
 
             if(this.filesProcessed < chunk.length) {
-                return this.exec(chunk, output, jobScript, callback);
+                return this.exec(chunk, output, jobScript, dataSource, callback);
             }
 
             return Promise.resolve();

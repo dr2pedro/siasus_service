@@ -1,4 +1,4 @@
-// @filename: Subset.ts
+// @filename: SIAParser.ts
 
 /*
  *     Copyright 2025 Pedro Paulo Teixeira dos Santos
@@ -16,7 +16,11 @@
     limitations under the License.
 */
 
-export interface Subset {
-    src: any
-    [key: string]: any
+import {BPA} from "../../core/BPA.js";
+import {APAC} from "../../core/APAC.js";
+import {RAAS} from "../../core/RAAS.js";
+
+export interface SIAParser {
+    dictionary: Map<string, (value: any) => any>;
+    parse(record: BPA | APAC | RAAS): BPA | APAC | RAAS
 }

@@ -163,17 +163,43 @@ export type PA_BPA = {
 }
 
 export type BPA_I = {
-    // Código do Estabelecimento no CNES (Cadastro Nacional de Estabelecimentos de Saúde).
+    /*
+        Código do Estabelecimento no CNES (Cadastro Nacional de Estabelecimentos de Saúde).
+
+        _**Esse código não será parseado nos childs.**_
+    */
     'CODUNI': string,
-    // Código da Unidade da Federação + Código do Município (IBGE) do Gestor, ou UF0000 se o estabelecimento estiver sob Gestão Estadual.
+    /*
+        Código da Unidade da Federação + Código do Município (IBGE) do Gestor, ou UF0000 se o estabelecimento estiver sob Gestão Estadual.
+
+        _**Parcialmente parseado, no caso de código UF0000, deve colocar o nome do Estado seguido de uma observação de que é estadual,
+        por exemplo: Rio de Janeiro - Gestão Estadual. Caso contrário deve deixar apenas o código do município. Talvez valha criar uma
+        variável booleana para indicar se já foi paseado ou não.**_
+    */
     'GESTAO': string,
-    // Sigla do Tipo de Gestão no qual o Estado ou Município está habilitado.
+    /*
+        Sigla do Tipo de Gestão no qual o Estado ou Município está habilitado.
+
+        _**Parseado**_.
+    */
     'CONDIC': string,
-    // Código da Unidade da Federação + Código do Município onde está localizado o estabelecimento.
+    /*
+        Código da Unidade da Federação + Código do Município onde está localizado o estabelecimento.
+
+        _**Esse código não será parseado nos childs.**_
+    */
     'UFMUN': string,
-    // Tipo de do Estabelecimento.
+    /*
+        Tipo do Estabelecimento.
+
+         _**Parseado**_.
+    */
     'TPUPS': string,
-    // Tipo de Prestador.
+    /*
+        Tipo de Prestador.
+
+        _**Não foi parseado**_.
+    */
     'TIPPRE': string,
     // Estabelecimento Mantido / Individual.
     'MN_IND': string,

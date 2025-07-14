@@ -16,4 +16,34 @@
     limitations under the License.
 */
 
-export type State = 'DF' | 'RJ' | 'SP' | 'AC' | 'AL' | 'AM' | 'AP' | 'BA' | 'CE' | 'ES' | 'GO' | 'MA' | 'MG' | 'MS' | 'MT' | 'PA' | 'PB' | 'PE' | 'PI' | 'PR' | 'RN' | 'RO' | 'RR' | 'RS' | 'SC' | 'SE' | 'TO'
+export enum StateCode {
+    'Distrito Federal' = '53',
+    'Rio de Janeiro' = '33',
+    'Sao Paulo' = '35',
+    'Acre' = '12',
+    'Alagoas' = '27',
+    'Amazonas' = '13',
+    'Amapa' = '16',
+    'Bahia' = '29',
+    'Ceara' = '23',
+    'Espirito Santo' = '32',
+    'Goais' = '52',
+    'Maranhao' = '21',
+    'Minas Gerais' = '31',
+    'Mato Grosso do Sul' = '50',
+    'Mato Grosso' = '51',
+    'Para' = '15',
+    'Paraiba' = '25',
+    'Pernambuco' = '26',
+    'Piaui' = '22',
+    'Parana' = '41',
+    'Rio Grande do Norte' = '24',
+    'Rondonia' = '11',
+    'Roraima' = '14',
+    'Rio Grande do Sul' = '43',
+    'Santa Catarina' = '42',
+    'Sergipe' = '28',
+    'Tocantins' = '17'
+}
+
+export type State = keyof typeof StateCode;

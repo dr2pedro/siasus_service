@@ -16,4 +16,6 @@
     limitations under the License.
 */
 
-export type SIADatasource = 'AB' | 'ABO' | 'ACF' | 'AD' | 'AM' | 'AN' | 'AQ' | 'AR' | 'ATD' | 'PA' | 'PS' | 'SAD' | 'BI'
+export type DataSource = {};
+
+export type SIADatasource = DataSource & 'AB' | 'ABO' | 'ACF' | 'AD' | 'AM' | 'AN' | 'AQ' | 'AR' | 'ATD' | 'PA' | 'PS' | 'SAD' | 'BI'
