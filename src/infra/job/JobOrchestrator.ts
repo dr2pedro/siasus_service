@@ -22,17 +22,22 @@ import {JobScheduler} from "./JobScheduler.js";
 import {Command} from "../Command.js";
 import {Subset} from "../../core/Subset.js";
 import {DATASUSGateway} from "../../interface/gateway/DATASUSGateway.js";
-import {DataSource} from "../../core/SIADatasource";
+import {DataSource} from "../../core/SIADatasource.js";
+import {SIAParser} from "../../interface/utils/SIAParser";
+import {Parser} from "../../interface/utils/Parser";
+import {Records} from "../../core/Records";
 
 export class JobOrchestrator<
     S extends Subset,
     D extends DataSource,
-    G extends DATASUSGateway<S>
+    G extends DATASUSGateway<S>,
+    P extends Parser<Records>
 > implements Command {
     private _files: string[] = [];
     private _chunks: string[][] = [[]];
     // Talvez tenha que vir por generics
-    private dataSource: D | undefined
+    private dataSource: D | undefined;
+    private parser: P | undefined;
 
     get files() {
         return this._files
@@ -51,15 +56,20 @@ export class JobOrchestrator<
         readonly callback?: Function,
     ) {}
 
-    static init(gateway: DATASUSGateway<Subset>, filters?: Map<string, string | string[]>, callback?: Function, output: 'stdout' | 'file' = 'stdout', MAX_CONCURRENT_PROCESSES: number = 5, DATA_PATH: string = './data/') {
-        return new JobOrchestrator(gateway, DATA_PATH, MAX_CONCURRENT_PROCESSES, output, filters, callback)
+    static init(gateway: DATASUSGateway<Subset>, filters?: Map<string, string | string[]>, callback?: Function, logOutput: 'stdout' | 'file' = 'stdout', MAX_CONCURRENT_PROCESSES: number = 5, DATA_PATH: string = './data/') {
+        return new JobOrchestrator(gateway, DATA_PATH, MAX_CONCURRENT_PROCESSES, logOutput, filters, callback)
     }
 
-    async subset(subset: S) {
+    async subset(subset: S, parser?: P) {
+        this._files = [];
+        this._chunks = [[]];
+        this.dataSource = undefined;
+        this.parser = undefined;
         this.dataSource = subset.src;
         this._files = await this.gateway.list(subset, 'short') as string[];
         this._files = Array.from(new Set(this._files));
         this._chunks = SplitIntoChunks.define(this.MAX_CONCURRENT_PROCESSES).exec(this._files) as string[][];
+        this.parser = parser;
     }
 
     async exec(jobScript: string) {
@@ -71,7 +81,7 @@ export class JobOrchestrator<
         let chunksProceeded = 0;
         if(this.output === 'file') console.log(`\nSending Jobs.\n`);
         while (chunksProceeded < this._chunks.length) {
-            await JobScheduler.init(this.MAX_CONCURRENT_PROCESSES, this.filters, this.DATA_PATH).exec(this._chunks[chunksProceeded], this.output, jobScript, this.dataSource,  this.callback).finally(() => {
+            await JobScheduler.init(this.MAX_CONCURRENT_PROCESSES, this.filters, this.DATA_PATH).exec(this._chunks[chunksProceeded], this.output, jobScript, this.dataSource,  this.callback, this.parser).finally(() => {
                 chunksProceeded = chunksProceeded + 1
             })
         }

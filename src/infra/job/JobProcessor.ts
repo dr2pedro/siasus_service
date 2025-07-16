@@ -58,7 +58,6 @@ export class JobProcessor {
     private summary: JobSummary;
     private dbc: Dbc | null;
     private msg: JobMessage;
-    readonly parser: SIAParser | undefined;
 
     constructor(msg: JobMessage) {
         this.msg = msg;
@@ -72,11 +71,6 @@ export class JobProcessor {
             errors: 0,
             filters: msg.criteria
         };
-
-        switch (this.msg.src) {
-            case "BI":
-                this.parser = SIABasicParser.instanceOf(BIDictionary)
-        }
     }
 
     private async handleRecord(record: BPA | APAC | RAAS): Promise<void> {
@@ -84,6 +78,9 @@ export class JobProcessor {
             switch (this.msg.output) {
                 case 'stdout':
                     console.log(JSON.stringify(record));
+                    this.summary.founds++;
+                    // @ts-ignore
+                    process.send(record);
                     break;
                 case 'file':
                     await this.writeToFile(record);
@@ -140,10 +137,6 @@ export class JobProcessor {
             await this.dbc!.forEachRecords(async (record: BPA) => {
                 try {
                     if (!this.msg.criteria || criteria?.every(criteria => criteria?.match(record))) {
-                        if(this.parser)
-                            record = this.parser.parse(
-                                record
-                            )
                         await this.handleRecord(record);
                     }
                 } catch (_) {

@@ -16,9 +16,11 @@
     limitations under the License.
 */
 
-import {ChildProcess, fork, Serializable} from "node:child_process";
+import {ChildProcess, fork} from "node:child_process";
 import {Command} from "../Command.js";
 import {JobMessage} from "./JobMessage.js";
+import {Parser} from "../../interface/utils/Parser.js";
+import {Records} from "../../core/Records.js";
 
 export class JobRunner implements Command {
     private constructor(private jobScript: string) {
@@ -28,7 +30,7 @@ export class JobRunner implements Command {
         return new JobRunner(jobScript)
     }
 
-    async exec(jobMsg: JobMessage, callback?: Function) {
+    async exec(jobMsg: JobMessage, callback?: Function, parser?: Parser<Records>) {
         return new Promise((resolve, reject) => {
             const child: ChildProcess = fork(this.jobScript);
             child.on('exit', (code, signal) => {
@@ -38,17 +40,14 @@ export class JobRunner implements Command {
                 resolve(true)
             });
 
-            if(callback) {
-                child.on('message', (msg: Serializable) => {
-                    // aqui tem que estar a denormalização.
-                    // e não pode estar acoplada. Talvez uma classe para denormalizar determinados fieds.
-                    // a estrategia do Mapper no Dicionário foi uma boa estratégia, com a diferença de que
-                    // talvez aqui, gere uma chamda HTTP para algum gateway.
-                    callback(msg)
-                });
-            }
+            child.on('message', (msg: string) => {
+                const parsedMsg = parser ? parser.parse(msg as unknown as Records) : msg;
+                if(callback) {
+                    callback(parsedMsg)
+                }
+            });
+
             child.send(jobMsg);
         })
     }
-
 }

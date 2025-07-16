@@ -19,7 +19,9 @@
 import {JobRunner} from "./JobRunner.js";
 import {Command} from "../Command.js";
 import {JobMessage} from "./JobMessage.js";
-import {DataSource, SIADatasource} from "../../core/SIADatasource";
+import {DataSource} from "../../core/SIADatasource.js";
+import {Parser} from "../../interface/utils/Parser.js";
+import {Records} from "../../core/Records.js";
 
 class FailToScheduleJob extends Error {
     constructor() {
@@ -48,7 +50,7 @@ export class JobScheduler<D extends DataSource> implements Command {
     }
 
     // O SIADatasource é a única coisa que identifica. Talvez tenha que vir por Generics.
-    async exec(chunk: string[] | JobMessage[], output: 'stdout' | 'file' = 'file', jobScript: string, dataSource?: D, callback?: Function): Promise<void> {
+    async exec(chunk: string[] | JobMessage[], output: 'stdout' | 'file' = 'file', jobScript: string, dataSource?: D, callback?: Function, parser?: Parser<Records>): Promise<void> {
         const criteriaObj = this.criteria ? Object.fromEntries(this.criteria) : undefined;
 
         try {
@@ -62,7 +64,8 @@ export class JobScheduler<D extends DataSource> implements Command {
                         criteria: criteriaObj,
                         dataPath: this.DATA_PATH
                     },
-                    callback
+                    callback,
+                    parser
                 );
 
             this.incrementFilesProcessed();

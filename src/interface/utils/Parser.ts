@@ -1,4 +1,4 @@
-// @filename: SIAParser.ts
+// @filename: Parser.ts
 
 /*
  *     Copyright 2025 Pedro Paulo Teixeira dos Santos
@@ -16,9 +16,9 @@
     limitations under the License.
 */
 
-import {BPA} from "../../core/BPA.js";
-import {APAC} from "../../core/APAC.js";
-import {RAAS} from "../../core/RAAS.js";
-import {Parser} from "./Parser.js";
+import {Records} from "../../core/Records.js";
 
-export interface SIAParser extends Parser<BPA | APAC | RAAS>{}
+export interface Parser<R extends Records> {
+    dictionary: Map<string, (value: any) => any>;
+    parse(record: R): R
+}
